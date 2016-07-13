@@ -1,4 +1,4 @@
-require "gome/version"
+require 'gome/version'
 
 module Gome
   # Your code goes here...
