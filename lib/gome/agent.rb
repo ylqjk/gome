@@ -35,6 +35,13 @@ module Gome
       fetch(*@last_request_args)
     end
 
+    def add_cookie(name, value, options = {})
+      fail Error, 'Not requested yet' unless @last_page
+      host = @last_page.uri.host
+      mech.cookie_jar << Mechanize::Cookie.new(name, host, { value: value, domain: host, path: '/' }.merge(options).compact)
+      self
+    end
+
     %w(get post put delete).each do |method|
       define_method(method) do |uri, *args|
         fetch(uri, method, *args)
@@ -45,13 +52,13 @@ module Gome
 
     def fetch(*args)
       @last_request_args = args
-      page = begin
-               fetch_page(*args)
-             rescue Mechanize::ResponseCodeError => e
-               raise e unless @options[:allow_error_codes].include?(e.response_code)
-               e.page
-             end
-      self.class.encode_page(page, @options[:force_encode])
+      @last_page = begin
+                     fetch_page(*args)
+                   rescue Mechanize::ResponseCodeError => e
+                     raise e unless @options[:allow_error_codes].include?(e.response_code)
+                     e.page
+                   end
+      self.class.encode_page(@last_page, @options[:force_encode])
     end
 
     def fetch_page(uri, method, data = nil, headers = {})
