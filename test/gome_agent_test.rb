@@ -20,6 +20,6 @@ class GomeAgentTest < Minitest::Test
     assert page.at('.title_area h2').nil?
     value = page.at('input[onclick^="eternityConfirm"]')[:onclick].match(/\((\d+)\)/)[1]
     ga.mech.cookie_jar << Mechanize::Cookie.new('confirm', page.uri.host, value: value, domain: page.uri.host, path: '/')
-    assert { '過保護な幼なじみ' == ga.get('http://www.alphapolis.co.jp/manga/viewOpening/455000131/').at('.title_area h2').text }
+    assert { '過保護な幼なじみ' == ga.reload.at('.title_area h2').text }
   end
 end

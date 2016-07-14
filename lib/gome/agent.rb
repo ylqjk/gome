@@ -30,6 +30,11 @@ module Gome
       yield mech if block_given?
     end
 
+    def reload
+      fail Error, 'Not requested yet' unless @last_request_args
+      fetch(*@last_request_args)
+    end
+
     %w(get post put delete).each do |method|
       define_method(method) do |uri, *args|
         fetch(uri, method, *args)
@@ -39,6 +44,7 @@ module Gome
     private
 
     def fetch(*args)
+      @last_request_args = args
       page = begin
                fetch_page(*args)
              rescue Mechanize::ResponseCodeError => e
@@ -61,6 +67,9 @@ module Gome
       else
         fail ArgumentError, "#{method.inspect} is not support method"
       end
+    end
+
+    class Error < StandardError
     end
   end
 end
