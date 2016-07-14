@@ -15,15 +15,19 @@ module Gome
       end
     end
 
+    attr_reader :mech
+
     def initialize(*args)
       @options = {
-        force_encode: false
+        force_encode: false,
+        allow_error_codes: nil
       }
       @options.merge!(args.extract_options!.assert_valid_keys(@options.keys))
+      @options[:allow_error_codes] = Array.try_convert(@options[:allow_error_codes]) || []
       @mech = Mechanize.new(*args)
-      @mech.user_agent_alias = 'Windows Edge'
-      @mech.max_history = 1
-      yield @mech if block_given?
+      mech.user_agent_alias = 'Windows Edge'
+      mech.max_history = 1
+      yield mech if block_given?
     end
 
     %w(get post put delete).each do |method|
@@ -35,19 +39,25 @@ module Gome
     private
 
     def fetch(*args)
-      self.class.encode_page(fetch_page(*args), @options[:force_encode])
+      page = begin
+               fetch_page(*args)
+             rescue Mechanize::ResponseCodeError => e
+               raise e unless @options[:allow_error_codes].include?(e.response_code)
+               e.page
+             end
+      self.class.encode_page(page, @options[:force_encode])
     end
 
     def fetch_page(uri, method, data = nil, headers = {})
       case method.to_s.downcase
       when 'get'
-        @mech.get(uri.to_s, data || [], uri.to_s, headers)
+        mech.get(uri.to_s, data || [], uri.to_s, headers)
       when 'post'
-        @mech.post(uri.to_s, data || {}, headers)
+        mech.post(uri.to_s, data || {}, headers)
       when 'put'
-        @mech.put(uri.to_s, data || '', headers)
+        mech.put(uri.to_s, data || '', headers)
       when 'delete'
-        @mech.delete(uri.to_s, data || {}, headers)
+        mech.delete(uri.to_s, data || {}, headers)
       else
         fail ArgumentError, "#{method.inspect} is not support method"
       end
