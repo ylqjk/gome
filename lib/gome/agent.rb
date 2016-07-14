@@ -31,12 +31,12 @@ module Gome
     end
 
     def reload
-      fail Error, 'Not requested yet' unless @last_request_args
+      raise Error, 'Not requested yet' unless @last_request_args
       fetch(*@last_request_args)
     end
 
     def add_cookie(name, value, options = {})
-      fail Error, 'Not requested yet' unless @last_page
+      raise Error, 'Not requested yet' unless @last_page
       host = @last_page.uri.host
       mech.cookie_jar << Mechanize::Cookie.new(name, host, { value: value, domain: host, path: '/' }.merge(options).compact)
       self
@@ -72,7 +72,7 @@ module Gome
       when 'delete'
         mech.delete(uri.to_s, data || {}, headers)
       else
-        fail ArgumentError, "#{method.inspect} is not support method"
+        raise ArgumentError, "#{method.inspect} is not support method"
       end
     end
 
