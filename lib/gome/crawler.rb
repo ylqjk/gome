@@ -1,0 +1,40 @@
+module Gome
+  class Crawler
+    def initialize(options = {}, &block)
+      @options = {
+        interval: 10
+      }
+      @options.merge!(options.assert_valid_keys(@options.keys))
+      @agent = Agent.new(&block)
+      @last_requested_at = Time.at(0)
+      @before_fetch_callbacks = []
+      @after_fetch_callbacks = []
+    end
+
+    %w(get post put delete).each do |method|
+      define_method(method) do |*args|
+        fetch(method, *args)
+      end
+    end
+
+    def before_fetch(&block)
+      @before_fetch_callbacks << block
+    end
+
+    def after_fetch(&block)
+      @after_fetch_callbacks << block
+    end
+
+    private
+
+    def fetch(*args)
+      time = @last_requested_at + @options[:interval] - Time.now
+      sleep time if time > 0
+      @before_fetch_callbacks.each { |f| instance_exec(*args, &f) }
+      page = @agent.send(*args)
+      @last_requested_at = Time.now
+      @after_fetch_callbacks.each { |f| instance_exec(*args, &f) }
+      page
+    end
+  end
+end
