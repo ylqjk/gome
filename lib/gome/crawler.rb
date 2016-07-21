@@ -12,8 +12,8 @@ module Gome
     end
 
     %w(get post put delete).each do |method|
-      define_method(method) do |*args|
-        fetch(method, *args)
+      define_method(method) do |*args, &block|
+        fetch(method, *args, &block)
       end
     end
 
@@ -34,7 +34,7 @@ module Gome
       page = @agent.send(*args)
       @last_requested_at = Time.now
       @after_fetch_callbacks.each { |f| instance_exec(*args, &f) }
-      page
+      block_given? ? yield(page) : page
     end
   end
 end
