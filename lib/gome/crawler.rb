@@ -25,6 +25,13 @@ module Gome
       @after_fetch_callbacks << block
     end
 
+    def start(*args, &block)
+      while Agent.uri?(args.first)
+        args = instance_exec(*args, &block)
+        args = [args] unless args.is_a?(Array)
+      end
+    end
+
     private
 
     def fetch(*args)

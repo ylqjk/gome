@@ -13,4 +13,6 @@ end
 
 gc = Gome::Crawler.new(interval: 0)
 gc.before_fetch { |*args| STDERR.puts "[#{Time.now}] #{args}" }
-pp gc.get('http://www.bing.co.jp/search', q: '日本語', &BingSearchPage.extractor)
+gc.start('http://www.bing.co.jp/search', q: '日本語') do |*args|
+  pp get(*args, &BingSearchPage.extractor)
+end

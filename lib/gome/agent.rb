@@ -1,10 +1,22 @@
 require 'active_support/all'
 require 'mechanize'
 require 'nkf'
+require 'uri'
 
 module Gome
   class Agent
     class << self
+      def uri?(uri)
+        return true if uri.is_a?(URI)
+        return false unless uri.is_a?(String)
+        begin
+          URI.parse(uri)
+          return true
+        rescue URI::InvalidURIError
+          return false
+        end
+      end
+
       def encode_page(page, encoding)
         return page unless encoding
         body = page.body
